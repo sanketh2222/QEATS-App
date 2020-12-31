@@ -14,7 +14,10 @@ import javax.validation.constraints.NotNull;
  */
 public class GeoLocation implements Serializable {
 
-  @NotNull private Double latitude;
+ 
+  private static final long serialVersionUID = -778104514067466027L;
+  @NotNull
+  private Double latitude;
   @NotNull private Double longitude;
 
   public GeoLocation() {}

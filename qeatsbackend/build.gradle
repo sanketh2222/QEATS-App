@@ -47,7 +47,7 @@ dependencies {
     // log4j2 dependencies
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.12.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
-    //compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.12.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.12.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2.12.1'
     compile group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.28'
 
@@ -75,6 +75,8 @@ dependencies {
 
     testCompile group: 'com.github.kstyrc', name: 'embedded-redis', version: '0.6'
 //    testCompile "ai.grakn:redis-mock:0.1.3"
+    // testCompile group: 'org.slf4j', name: 'slf4j-log4j12', version: '2.0.0-alpha1'//extra add
+    // testCompile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.14.0'//extra add
 
     testImplementation("org.mockito:mockito-junit-jupiter:$rootProject.ext.mockitoVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-test:$rootProject.ext.springBootVersion") {

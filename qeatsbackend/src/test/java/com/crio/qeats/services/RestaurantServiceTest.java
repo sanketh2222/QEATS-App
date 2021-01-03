@@ -73,7 +73,6 @@ class RestaurantServiceTest {
     GetRestaurantsResponse allRestaurantsCloseBy = restaurantService
         .findAllRestaurantsCloseBy(new GetRestaurantsRequest(20.0, 30.0),
             timeOfService); //LocalTime.of(19,00));
-    allRestaurantsCloseBy.getClass();
     assertEquals(2, allRestaurantsCloseBy.getRestaurants().size());
     assertEquals("11", allRestaurantsCloseBy.getRestaurants().get(0).getRestaurantId());
     assertEquals("12", allRestaurantsCloseBy.getRestaurants().get(1).getRestaurantId());
@@ -87,7 +86,7 @@ class RestaurantServiceTest {
   }
 
   @Test
-  void peakHourServingRadiusOf3KmsAt7Pm() throws IOException {
+  public void peakHourServingRadiusOf3KmsAt7Pm() throws IOException {
     assertEquals(getServingRadius(loadRestaurantsDuringPeakHours(), LocalTime.of(19, 0)), "3.0");
   }
 
@@ -104,6 +103,8 @@ class RestaurantServiceTest {
 
 
     assertFalse(false);
+
+
   }
 
 

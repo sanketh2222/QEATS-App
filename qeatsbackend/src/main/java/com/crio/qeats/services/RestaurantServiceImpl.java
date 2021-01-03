@@ -30,7 +30,6 @@ public class RestaurantServiceImpl implements RestaurantService {
 
   private final Double peakHoursServingRadiusInKms = 3.0;
   private final Double normalHoursServingRadiusInKms = 5.0;
-
   @Autowired
   private RestaurantRepositoryService restaurantRepositoryService;
 

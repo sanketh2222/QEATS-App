@@ -67,14 +67,6 @@ public class RestaurantServiceMockitoTestStub {
     //  following and find out what to do with the array.
   }
 
-  private List<Restaurant> loadRestaurantsDuringNormalHours() throws IOException {
-    String fixture =
-        FixtureHelpers.fixture(FIXTURES + "/normal_hours_list_of_restaurants.json");
-
-    return objectMapper.readValue(fixture, new TypeReference<List<Restaurant>>() {
-    });
-  }
-
 
 
   @Test

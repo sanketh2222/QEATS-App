@@ -91,11 +91,12 @@ public class RestaurantController {
     log.info("getRestaurants returned {}", getRestaurantsResponse);
     //CHECKSTYLE:ON
     System.out.println(getRestaurantsResponse);
+
     List<Restaurant> restaurants = getRestaurantsResponse.getRestaurants();
     for (Restaurant r: restaurants) {
       System.out.println(r.getRestaurantId());
       if (r.getName().contains("é")) {
-        String name = r.getName().replace("é", "e");
+        String name = r.getName().replace("é", "?");
         System.out.println(name);
         r.setName(name);
       }

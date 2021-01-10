@@ -46,6 +46,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Restaurant {
 
+ 
   private String restaurantId;
   private String name;
   private String city;

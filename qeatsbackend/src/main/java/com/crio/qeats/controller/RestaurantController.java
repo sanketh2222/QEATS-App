@@ -96,7 +96,7 @@ public class RestaurantController {
     for (Restaurant r: restaurants) {
       System.out.println(r.getRestaurantId());
       if (r.getName().contains("é")) {
-        String name = r.getName().replace("é", "?");
+        String name = r.getName().replace("é", "e");
         System.out.println(name);
         r.setName(name);
       }

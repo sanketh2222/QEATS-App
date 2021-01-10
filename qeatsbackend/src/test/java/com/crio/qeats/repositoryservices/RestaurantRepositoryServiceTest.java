@@ -111,6 +111,18 @@ public class RestaurantRepositoryServiceTest {
     assertEquals(0, allRestaurantsCloseBy.size());
   }
 
+  // @Test
+  // void hugeRestResp(@Autowired MongoTemplate mongoTemplate) {
+  //   assertNotNull(mongoTemplate);
+  //   assertNotNull(restaurantRepositoryService);
+
+  //   List<Restaurant> allRestaurantsCloseBy = restaurantRepositoryService
+  //       .findAllRestaurantsCloseBy(13.012396, 80.166580, LocalTime.of(21, 01), 3.0);
+
+  //   ModelMapper modelMapper = modelMapperProvider.get();
+  //   assertEquals(200, allRestaurantsCloseBy.size());
+  // }
+
   @Test
   void tooEarlyNoRestaurantIsOpen(@Autowired MongoTemplate mongoTemplate) {
     assertNotNull(mongoTemplate);
@@ -165,7 +177,9 @@ public class RestaurantRepositoryServiceTest {
 
   private List<RestaurantEntity> listOfRestaurants() throws IOException {
     String fixture =
+        // FixtureHelpers.fixture(FIXTURES + "/huge_restaurant_list.json");
         FixtureHelpers.fixture(FIXTURES + "/initial_data_set_restaurants.json");
+    //huge_restaurant_list
 
     return objectMapper.readValue(fixture, new TypeReference<List<RestaurantEntity>>() {
     });

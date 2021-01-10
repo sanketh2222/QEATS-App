@@ -88,7 +88,7 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
         // mapper.map(restaurants1, Restaurant.class);
       }
     }
-    System.out.println(dist);
+    // System.out.println(dist);
     // RestaurantRepository
     // restaurantRepository.findAll();
 

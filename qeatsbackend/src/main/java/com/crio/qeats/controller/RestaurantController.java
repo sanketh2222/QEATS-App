@@ -6,13 +6,17 @@
 
 package com.crio.qeats.controller;
 
+import com.crio.qeats.dto.Restaurant;
 import com.crio.qeats.exchanges.GetRestaurantsRequest;
 import com.crio.qeats.exchanges.GetRestaurantsResponse;
 import com.crio.qeats.services.RestaurantService;
 
 import java.time.LocalTime;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,8 +90,38 @@ public class RestaurantController {
           .findAllRestaurantsCloseBy(getRestaurantsRequest, LocalTime.now());
     log.info("getRestaurants returned {}", getRestaurantsResponse);
     //CHECKSTYLE:ON
+    System.out.println(getRestaurantsResponse);
+    List<Restaurant> restaurants = getRestaurantsResponse.getRestaurants();
+    for (Restaurant r: restaurants) {
+      System.out.println(r.getRestaurantId());
+      if (r.getName().contains("é")) {
+        String name = r.getName().replace("é", "e");
+        System.out.println(name);
+        r.setName(name);
+      }
+    }
+    // ResponseEntity r = ResponseEntity.ok().body(getRestaurantsResponse);
+    // r.ok().
+    for (Restaurant r: restaurants) {
+      System.out.println(r.getRestaurantId());
+      if (r.getRestaurantId().equals("18070480")) {
+        String name = r.getName();
+      }
+
+    }
 
     return ResponseEntity.ok().body(getRestaurantsResponse);
+    
+    // try {
+    //   System.out.println("all working fine");
+    //   // Response
+    //   return ResponseEntity.ok().body(getRestaurantsResponse);
+    // } catch (Exception e) {
+    //   System.out.println("exception occured while returning list\n");
+    //   return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      
+    // }
+    
   }
 
   // TIP(MODULE_MENUAPI): Model Implementation for getting menu given a restaurantId.

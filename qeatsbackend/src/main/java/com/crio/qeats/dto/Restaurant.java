@@ -9,6 +9,7 @@ package com.crio.qeats.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.io.Serializable;
 // import com.fasterxml.jackson.annotation.JsonIgnore;
 // import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +45,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Restaurant {
+public class Restaurant implements Serializable {
 
  
+  
+  private static final long serialVersionUID = 1L;
   private String restaurantId;
   private String name;
   private String city;

@@ -21,7 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Document(collection = "restaurants")
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+//was json ignore properteis
 public class RestaurantEntity {
 
   @Id

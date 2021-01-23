@@ -7,14 +7,17 @@
 package com.crio.qeats.repositoryservices;
 
 import ch.hsr.geohash.GeoHash;
+import com.crio.qeats.configs.RedisConfiguration;
 import com.crio.qeats.dto.Restaurant;
 import com.crio.qeats.globals.GlobalConstants;
 import com.crio.qeats.models.RestaurantEntity;
 import com.crio.qeats.repositories.RestaurantRepository;
 import com.crio.qeats.utils.GeoLocation;
 import com.crio.qeats.utils.GeoUtils;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalTime;
@@ -30,18 +33,22 @@ import java.util.stream.Collectors;
 import javax.inject.Provider;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 @Service
+@CacheConfig(cacheNames = { "Restaurant" })
 public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryService {
 
-
-
+  @Autowired
+  private RedisConfiguration redisConfiguration;
 
   @Autowired
   private MongoTemplate mongoTemplate;
@@ -58,29 +65,32 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
 
     return time.isAfter(openingTime) && time.isBefore(closingTime);
   }
-  
 
   // TODO: CRIO_TASK_MODULE_NOSQL
   // Objectives:
   // 1. Implement findAllRestaurantsCloseby.
   // 2. Remember to keep the precision of GeoHash in mind while using it as a key.
   // Check RestaurantRepositoryService.java file for the interface contract.
-  public List<Restaurant> findAllRestaurantsCloseBy(Double latitude,
-      Double longitude, LocalTime currentTime, Double servingRadiusInKms) {
+  // @Cacheable
+  public List<Restaurant> findAllRestaurantsCloseBy1(Double latitude, Double longitude, LocalTime currentTime,
+      Double servingRadiusInKms) {
 
     // Restaurant restaurant = mongoTemplate
-    //     .findOne(query(where("latitude").is(latitude)), Restaurant.class);
+    // .findOne(query(where("latitude").is(latitude)), Restaurant.class);
     // Query q = new Query();
     List<Double> dist = new ArrayList<>();
     ModelMapper mapper = modelMapperProvider.get();
     List<Restaurant> restaurants1 = new ArrayList<>();
-    // List<RestaurantEntity> restaurants = mongoTemplate.findAll(RestaurantEntity.class);
+    // List<RestaurantEntity> restaurants =
+    // mongoTemplate.findAll(RestaurantEntity.class);
+    System.out.println("calling db function");
+    long startTimeInMillis = System.currentTimeMillis();
     List<RestaurantEntity> restaurants = restaurantRepository.findAll();
-    for (RestaurantEntity restaurant: restaurants) {
+    for (RestaurantEntity restaurant : restaurants) {
       if (isOpenNow(currentTime, restaurant)) {
         // restaurants1.add(mapper.map(restaurant, Restaurant.class));
         Double distance = GeoUtils.findDistanceInKm(latitude, longitude, restaurant.getLatitude(),
-             restaurant.getLongitude());
+            restaurant.getLongitude());
         if (distance < servingRadiusInKms) {
           restaurants1.add(mapper.map(restaurant, Restaurant.class));
         }
@@ -96,11 +106,115 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
     // q.getQueryObject();
     // Res
     // Restaurant restaurants1 = mongoTemplate.findOne(q, Restaurant.class);
-    // GeoHash.geoHashStringWithCharacterPrecision(latitude, longitude, numberOfCharacters);
+    // GeoHash.geoHashStringWithCharacterPrecision(latitude, longitude,
+    // numberOfCharacters);
 
     // mongoTemplate.find
+
+    long endTimeInMillis = System.currentTimeMillis();
+    System.out.println("Your function took :" + (endTimeInMillis - startTimeInMillis));
     return restaurants1;
   }
+
+  public List<Restaurant> findAllRestaurantsCloseByWithouCache(Double latitude, Double longitude, LocalTime currentTime,
+      Double servingRadiusInKms) {
+
+    // Restaurant restaurant = mongoTemplate
+    // .findOne(query(where("latitude").is(latitude)), Restaurant.class);
+    // Query q = new Query();
+    List<Double> dist = new ArrayList<>();
+    ModelMapper mapper = modelMapperProvider.get();
+    List<Restaurant> restaurants1 = new ArrayList<>();
+    // List<RestaurantEntity> restaurants =
+    // mongoTemplate.findAll(RestaurantEntity.class);
+    System.out.println("calling db function");
+    long startTimeInMillis = System.currentTimeMillis();
+    List<RestaurantEntity> restaurants = restaurantRepository.findAll();
+    for (RestaurantEntity restaurant : restaurants) {
+      if (isOpenNow(currentTime, restaurant)) {
+        // restaurants1.add(mapper.map(restaurant, Restaurant.class));
+        Double distance = GeoUtils.findDistanceInKm(latitude, longitude, restaurant.getLatitude(),
+            restaurant.getLongitude());
+        if (distance < servingRadiusInKms) {
+          restaurants1.add(mapper.map(restaurant, Restaurant.class));
+        }
+        dist.add(distance);
+        // mapper.map(restaurants1, Restaurant.class);
+      }
+    }
+    // System.out.println(dist);
+    // RestaurantRepository
+    // restaurantRepository.findAll();
+
+    // q.addCriteria(Criteria.where("latitutude").is(latitude).and("longitude").is(longitude));
+    // q.getQueryObject();
+    // Res
+    // Restaurant restaurants1 = mongoTemplate.findOne(q, Restaurant.class);
+    // GeoHash.geoHashStringWithCharacterPrecision(latitude, longitude,
+    // numberOfCharacters);
+
+    // mongoTemplate.find
+
+    long endTimeInMillis = System.currentTimeMillis();
+    System.out.println("Your function took :" + (endTimeInMillis - startTimeInMillis));
+    return restaurants1;
+  }
+
+  public List<Restaurant> findAllRestaurantsCloseBy(Double latitude, Double longitude, LocalTime currentTime,
+      Double servingRadiusInKms) {
+
+    // List<Restaurant> restaurants = null;
+    // TODO: CRIO_TASK_MODULE_REDIS
+    // We want to use cache to speed things up. Write methods that perform the same
+    // functionality,
+    // but using the cache if it is present and reachable.
+    // Remember, you must ensure that if cache is not present, the queries are
+    // directed at the
+    // database instead.
+    JedisPool jedisPool = redisConfiguration.getJedisPool();
+    Jedis jedis = jedisPool.getResource();
+    GeoHash geoHash = GeoHash.withCharacterPrecision(latitude, longitude, 7);
+    String restaurant = jedis.get(geoHash.toBase32());
+    if (restaurant == null) {
+      List<Restaurant> rest = findAllRestaurantsCloseByWithouCache(latitude, longitude, currentTime,
+          servingRadiusInKms);
+      ObjectMapper obj = new ObjectMapper();
+      try {
+        jedis.set(geoHash.toBase32(), obj.writeValueAsString(rest));
+      } catch (JsonProcessingException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return rest;
+
+    } else {
+      List<Restaurant> restaurants = new ArrayList<>();
+      try {
+        Restaurant[] rests = new ObjectMapper().readValue(restaurant, Restaurant[].class);
+        for (Restaurant rs: rests) {
+          restaurants.add(rs);
+        }
+      } catch (JsonParseException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (JsonMappingException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return restaurants;
+    }
+
+
+    //CHECKSTYLE:OFF
+    //CHECKSTYLE:ON
+
+
+    // return restaurants;
+  }
+
 
 
 

@@ -11,7 +11,10 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 // TODO: CRIO_TASK_MODULE_RESTAURANTSAPI
 //  Implement GetRestaurantsRequest.
@@ -20,15 +23,24 @@ import lombok.NoArgsConstructor;
 //  For instance, if a REST client calls API
 //  /qeats/v1/restaurants?latitude=28.4900591&longitude=77.536386&searchFor=tamil,
 //  this class should be able to deserialize lat/long and optional searchFor from that.
-@Data
+// @Data
 // @NoArgsConstructor
-@AllArgsConstructor
+// @AllArgsConstructor
+@Data
+// @RequiredArgsConstructor
+// @Setter
+// @Getter
 public class GetRestaurantsRequest {
 
   @NotNull
-  private Double latitude;
+  private final Double latitude;
+
   @NotNull
-  private Double longitude;
+  private final Double longitude;
+
+
+  private String searchFor = " ";
+  
 
 }
 

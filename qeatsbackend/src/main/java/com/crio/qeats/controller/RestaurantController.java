@@ -86,30 +86,40 @@ public class RestaurantController {
    
 
     //CHECKSTYLE:OFF
-    getRestaurantsResponse = restaurantService
-          .findAllRestaurantsCloseBy(getRestaurantsRequest, LocalTime.now());
+    if (getRestaurantsRequest.getSearchFor() != null 
+        && getRestaurantsRequest.getSearchFor() != " ") {
+
+      getRestaurantsResponse = restaurantService
+          .findRestaurantsBySearchQuery(getRestaurantsRequest, LocalTime.now());
+      
+
+    } else {
+      getRestaurantsResponse = restaurantService
+      .findAllRestaurantsCloseBy(getRestaurantsRequest, LocalTime.now());
+    }
+    
     log.info("getRestaurants returned {}", getRestaurantsResponse);
     //CHECKSTYLE:ON
-    System.out.println(getRestaurantsResponse);
+    // System.out.println(getRestaurantsResponse);//response is null
 
     List<Restaurant> restaurants = getRestaurantsResponse.getRestaurants();
     for (Restaurant r: restaurants) {
       System.out.println(r.getRestaurantId());
       if (r.getName().contains("é")) {
         String name = r.getName().replace("é", "e");
-        System.out.println(name);
+        // System.out.println(name);
         r.setName(name);
       }
     }
     // ResponseEntity r = ResponseEntity.ok().body(getRestaurantsResponse);
     // r.ok().
-    for (Restaurant r: restaurants) {
-      System.out.println(r.getRestaurantId());
-      if (r.getRestaurantId().equals("18070480")) {
-        String name = r.getName();
-      }
+    // for (Restaurant r: restaurants) {
+    //   System.out.println(r.getRestaurantId());
+    //   if (r.getRestaurantId().equals("18070480")) {
+    //     String name = r.getName();
+    //   }
 
-    }
+    // }
 
     return ResponseEntity.ok().body(getRestaurantsResponse);
     

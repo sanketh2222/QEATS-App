@@ -7,16 +7,20 @@
 package com.crio.qeats.repositoryservices;
 
 import ch.hsr.geohash.GeoHash;
+
 import com.crio.qeats.configs.RedisConfiguration;
 import com.crio.qeats.dto.Restaurant;
 import com.crio.qeats.globals.GlobalConstants;
+import com.crio.qeats.models.ItemEntity;
+import com.crio.qeats.models.MenuEntity;
 import com.crio.qeats.models.RestaurantEntity;
+import com.crio.qeats.repositories.ItemRepository;
+import com.crio.qeats.repositories.MenuRepository;
 import com.crio.qeats.repositories.RestaurantRepository;
 import com.crio.qeats.utils.GeoLocation;
 import com.crio.qeats.utils.GeoUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -31,10 +35,10 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Provider;
+import javax.print.DocFlavor.STRING;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -43,9 +47,12 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+
+
 @Service
-@CacheConfig(cacheNames = { "Restaurant" })
 public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryService {
+
+
 
   @Autowired
   private RedisConfiguration redisConfiguration;
@@ -58,6 +65,7 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
 
   @Autowired
   private RestaurantRepository restaurantRepository;
+
 
   private boolean isOpenNow(LocalTime time, RestaurantEntity res) {
     LocalTime openingTime = LocalTime.parse(res.getOpensAt());
@@ -72,8 +80,8 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
   // 2. Remember to keep the precision of GeoHash in mind while using it as a key.
   // Check RestaurantRepositoryService.java file for the interface contract.
   // @Cacheable
-  public List<Restaurant> findAllRestaurantsCloseBy1(Double latitude, Double longitude, LocalTime currentTime,
-      Double servingRadiusInKms) {
+  public List<Restaurant> findAllRestaurantsCloseBy1(Double latitude, Double longitude, 
+      LocalTime currentTime,Double servingRadiusInKms) {
 
     // Restaurant restaurant = mongoTemplate
     // .findOne(query(where("latitude").is(latitude)), Restaurant.class);
@@ -116,8 +124,8 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
     return restaurants1;
   }
 
-  public List<Restaurant> findAllRestaurantsCloseByWithouCache(Double latitude, Double longitude, LocalTime currentTime,
-      Double servingRadiusInKms) {
+  public List<Restaurant> findAllRestaurantsCloseByWithoutCache(Double latitude, Double longitude, 
+      LocalTime currentTime, Double servingRadiusInKms) {
 
     // Restaurant restaurant = mongoTemplate
     // .findOne(query(where("latitude").is(latitude)), Restaurant.class);
@@ -160,8 +168,8 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
     return restaurants1;
   }
 
-  public List<Restaurant> findAllRestaurantsCloseBy(Double latitude, Double longitude, LocalTime currentTime,
-      Double servingRadiusInKms) {
+  public List<Restaurant> findAllRestaurantsCloseBy(Double latitude, Double longitude,
+      LocalTime currentTime, Double servingRadiusInKms) {
 
     // List<Restaurant> restaurants = null;
     // TODO: CRIO_TASK_MODULE_REDIS
@@ -176,7 +184,8 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
     GeoHash geoHash = GeoHash.withCharacterPrecision(latitude, longitude, 7);
     String restaurant = jedis.get(geoHash.toBase32());
     if (restaurant == null) {
-      List<Restaurant> rest = findAllRestaurantsCloseByWithouCache(latitude, longitude, currentTime,
+      List<Restaurant> rest = findAllRestaurantsCloseByWithoutCache(latitude, longitude,
+          currentTime,
           servingRadiusInKms);
       ObjectMapper obj = new ObjectMapper();
       try {
@@ -241,6 +250,69 @@ public class RestaurantRepositoryServiceImpl implements RestaurantRepositoryServ
     }
 
     return false;
+  }
+
+  @Override
+  public List<Restaurant> findRestaurantsByName(Double latitude, Double longitude,
+       String searchString,
+      LocalTime currentTime, Double servingRadiusInKms) {
+    // TODO Auto-generated method stub
+    List<RestaurantEntity> restaurants = restaurantRepository.findAll();
+    List<Restaurant> restaurant = new ArrayList<>();
+    ModelMapper mapper = modelMapperProvider.get();
+    for (RestaurantEntity r : restaurants) {
+      if (r.getName().contains(searchString)) {
+        if (isRestaurantCloseByAndOpen(r, currentTime,
+            latitude, longitude, servingRadiusInKms)) {
+          restaurant.add(mapper.map(r, Restaurant.class));
+        }
+        
+      }
+    }
+    return restaurant;
+  }
+
+ 
+
+  @Override
+  public List<Restaurant> findRestaurantsByAttributes(Double latitude, Double longitude,
+      String searchString,
+      LocalTime currentTime, Double servingRadiusInKms) {
+    // TODO Auto-generated method stub
+    List<RestaurantEntity> restaurants = restaurantRepository.findAll();
+    Query q = new Query();
+    String s = new String(searchString);
+    q.addCriteria(Criteria.where("name").is(s));
+    List<Restaurant> r = mongoTemplate.find(q, Restaurant.class);
+    return r;
+  }
+
+  @Override
+  public List<Restaurant> findRestaurantsByItemName(Double latitude, Double longitude,
+      String searchString,
+      LocalTime currentTime, Double servingRadiusInKms) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public List<Restaurant> findRestaurantsByItemAttributes(Double latitude, Double longitude,
+      String searchString,
+      LocalTime currentTime, Double servingRadiusInKms) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+ 
+
+  public static void main(String[] args) {
+
+    RestaurantRepositoryServiceImpl r = new RestaurantRepositoryServiceImpl();
+    r.findRestaurantsByAttributes(28.0, 77.0, "a", 
+        LocalTime.of(18, 40), 3.0);
+    // r.findAllRestaurantsCloseByWithoutCache(28.0, 77.0,
+    //     LocalTime.of(18, 40), 3.0);
+    
   }
 
 

@@ -60,10 +60,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.UriComponentsBuilder;
 
-// TODO: CRIO_TASK_MODULE_RESTAURANTSAPI
-//  Pass all the RestaurantController test cases.
-//  Make modifications to the tests if necessary.
-//  Test RestaurantController by mocking RestaurantService.
 @SpringBootTest(classes = {QEatsApplication.class})
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 @AutoConfigureMockMvc
@@ -100,6 +96,79 @@ public class RestaurantControllerTest {
     mvc = MockMvcBuilders.standaloneSetup(restaurantController).build();
   }
 
+  @Test
+  public void correctQueryReturnsOkResponseAndListOfRestaurants() throws Exception {
+    GetRestaurantsResponse sampleResponse = loadSampleResponseList();
+    assertNotNull(sampleResponse);
+
+    when(restaurantService
+        .findAllRestaurantsCloseBy(any(GetRestaurantsRequest.class), any(LocalTime.class)))
+        .thenReturn(sampleResponse);
+
+    ArgumentCaptor<GetRestaurantsRequest> argumentCaptor = ArgumentCaptor
+        .forClass(GetRestaurantsRequest.class);
+
+    URI uri = UriComponentsBuilder
+        .fromPath(RESTAURANT_API_URI)
+        .queryParam("latitude", "20.21")
+        .queryParam("longitude", "30.31")
+        .build().toUri();
+
+    assertEquals(RESTAURANT_API_URI + "?latitude=20.21&longitude=30.31", uri.toString());
+
+    MockHttpServletResponse response = mvc.perform(
+        get(uri.toString()).accept(APPLICATION_JSON_UTF8)
+    ).andReturn().getResponse();
+
+    assertEquals(HttpStatus.OK.value(), response.getStatus());
+
+    verify(restaurantService, times(1))
+        .findAllRestaurantsCloseBy(argumentCaptor.capture(), any(LocalTime.class));
+
+    assertEquals("20.21", argumentCaptor.getValue().getLatitude().toString());
+
+    assertEquals("30.31", argumentCaptor.getValue().getLongitude().toString());
+
+  }
+
+  @Test
+  public void getRestaurantsBySearchStringAndLatLong() throws Exception {
+    GetRestaurantsResponse sampleResponse = loadSampleResponseList();
+    assertNotNull(sampleResponse);
+
+    when(restaurantService
+        .findRestaurantsBySearchQuery(any(GetRestaurantsRequest.class), any(LocalTime.class)))
+        .thenReturn(sampleResponse);
+
+    ArgumentCaptor<GetRestaurantsRequest> argumentCaptor = ArgumentCaptor
+        .forClass(GetRestaurantsRequest.class);
+
+    URI uri = UriComponentsBuilder
+        .fromPath(RESTAURANT_API_URI)
+        .queryParam("latitude", "20.21")
+        .queryParam("longitude", "30.31")
+        .queryParam("searchFor", "Briyani")
+        .build().toUri();
+
+    assertEquals(RESTAURANT_API_URI + "?latitude=20.21&longitude=30.31&searchFor=Briyani",
+        uri.toString());
+
+    MockHttpServletResponse response = mvc.perform(
+        get(uri.toString()).accept(APPLICATION_JSON_UTF8)
+    ).andReturn().getResponse();
+
+    assertEquals(HttpStatus.OK.value(), response.getStatus());
+
+    verify(restaurantService, times(1))
+        .findRestaurantsBySearchQuery(argumentCaptor.capture(), any(LocalTime.class));
+
+    assertEquals("20.21", argumentCaptor.getValue().getLatitude().toString());
+
+    assertEquals("30.31", argumentCaptor.getValue().getLongitude().toString());
+
+    assertEquals("Briyani", argumentCaptor.getValue().getSearchFor());
+
+  }
 
   @Test
   public void invalidLatitudeResultsInBadHttpRequest() throws Exception {
@@ -257,6 +326,21 @@ public class RestaurantControllerTest {
 
 
 
+  private GetRestaurantsResponse loadSampleResponseList() throws IOException {
+    String fixture =
+        FixtureHelpers.fixture(FIXTURES + "/list_restaurant_response.json");
+
+    return objectMapper.readValue(fixture,
+        new TypeReference<GetRestaurantsResponse>() {
+        });
+  }
+
+  private GetRestaurantsResponse loadSampleRequest() throws IOException {
+    String fixture =
+        FixtureHelpers.fixture(FIXTURES + "/create_restaurant_request.json");
+
+    return objectMapper.readValue(fixture, GetRestaurantsResponse.class);
+  }
 
 }
 

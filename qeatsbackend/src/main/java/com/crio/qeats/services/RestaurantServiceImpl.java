@@ -121,4 +121,31 @@ public class RestaurantServiceImpl implements RestaurantService {
     return response;
   }
 
+
+
+  // @Override
+  // public GetRestaurantsResponse findAllRestaurantsCloseBy(
+  //     GetRestaurantsRequest getRestaurantsRequest, LocalTime currentTime) {
+
+
+  // }
+
+
+  // @Override
+  // public GetRestaurantsResponse findRestaurantsBySearchQuery(
+  //     GetRestaurantsRequest getRestaurantsRequest, LocalTime currentTime) {
+
+  // }
+
+  // TODO: CRIO_TASK_MODULE_MULTITHREADING
+  // Implement multi-threaded version of RestaurantSearch.
+  // Implement variant of findRestaurantsBySearchQuery which is at least 1.5x time faster than
+  // findRestaurantsBySearchQuery.
+  @Override
+  public GetRestaurantsResponse findRestaurantsBySearchQueryMt(
+      GetRestaurantsRequest getRestaurantsRequest, LocalTime currentTime) {
+
+     return null;
+  }
 }
+

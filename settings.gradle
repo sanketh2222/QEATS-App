@@ -20,6 +20,6 @@ pluginManagement {
         }
     }
 }
-rootProject.name = 'ME_QEATS_V2'
+rootProject.name = 'ME_QEATS_V3'
 include 'qeatsbackend'
 
